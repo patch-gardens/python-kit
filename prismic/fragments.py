@@ -26,23 +26,24 @@ class Fragment(object):
 
         if not cls._types:
             cls._types = {
-                "Image":          Fragment.Image,
-                "Color":          Fragment.Color,
-                "Text":           Fragment.Text,
-                "Select":         Fragment.Text,
-                "Number":         Fragment.Number,
-                "Range":          Fragment.Range,
-                "Date":           Fragment.Date,
-                "Timestamp":      Fragment.Timestamp,
-                "StructuredText": StructuredText,
-                "Link.document":  Fragment.DocumentLink,
-                "Link.file":      Fragment.MediaLink,
-                "Link.web":       Fragment.WebLink,
-                "Link.image":     Fragment.ImageLink,
-                "Embed":          Fragment.Embed,
-                "GeoPoint":       Fragment.GeoPoint,
-                "Group":          Fragment.Group,
-                "SliceZone":      Fragment.SliceZone
+                "Image":                Fragment.Image,
+                "Color":                Fragment.Color,
+                "Text":                 Fragment.Text,
+                "Select":               Fragment.Text,
+                "Number":               Fragment.Number,
+                "Range":                Fragment.Range,
+                "Date":                 Fragment.Date,
+                "Timestamp":            Fragment.Timestamp,
+                "StructuredText":       StructuredText,
+                "Link.document":        Fragment.DocumentLink,
+                "Link.file":            Fragment.MediaLink,
+                "Link.web":             Fragment.WebLink,
+                "Link.image":           Fragment.ImageLink,
+                "Embed":                Fragment.Embed,
+                "GeoPoint":             Fragment.GeoPoint,
+                "Group":                Fragment.Group,
+                "SliceZone":            Fragment.SliceZone,
+                "IntegrationFields":    Fragment.IntegrationFields,
             }
 
         fragment_type = data.get("type")
@@ -579,6 +580,11 @@ class Fragment(object):
 
         def __iter__(self):
             return iter(self.slices)
+
+    class IntegrationFields(BasicFragment):
+
+        def as_html(self):
+            return "<span>{0}</span>".format(self.value)
 
 
 class StructuredText(object):
