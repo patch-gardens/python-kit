@@ -52,6 +52,8 @@ def get_json(url, params=None, access_token=None, cache=None, ttl=None, request_
             json_result = json.loads(text_result, object_pairs_hook=OrderedDict)
             expire = ttl or get_max_age(headers)
             if expire is not None:
+                if expire > 300:
+                    expire = 300
                 cache.set(full_url, json_result, expire)
             return json_result
         elif status_code == 401:
