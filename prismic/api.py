@@ -179,6 +179,7 @@ class SearchForm(object):
         self.action = form.get("action")
         self.method = form.get("method")
         self.enctype = form.get("enctype")
+        self.language = form.get("language", None)
         self.fields = form.get("fields") or {}
         self.data = {}
         # default values
@@ -269,7 +270,8 @@ class SearchForm(object):
             self.data,
             self.access_token,
             self.cache,
-            request_handler=self.request_handler
+            request_handler=self.request_handler,
+            lang=self.language
         ))
 
     def page(self, page_number):
