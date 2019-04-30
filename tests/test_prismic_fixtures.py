@@ -709,6 +709,30 @@ fixture_block_labels = """{
       "slugs":[]
 }"""
 
+fixture_block_price = """{
+   "tags":[],
+   "data":{
+      "announcement":{
+         "content":{
+               "type":"StructuredText",
+               "value":[
+                  {
+                     "text": "some price £30 €50 ",
+                     "type":"paragraph",
+                     "label": "code",
+                     "spans":[
+                     ]
+                  }
+               ]
+            }
+         }
+      },
+      "id": "123",
+      "href": "https://teamup.prismic.io/api/documents/search?ref=aa",
+      "type":"announcement",
+      "slugs":[]
+}"""
+
 fixture_store_geopoint = """{
     "id": "UlfoxUnM0wkXYXbq",
     "type": "store",
