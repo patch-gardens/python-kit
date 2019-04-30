@@ -33,6 +33,7 @@ def get_using_requests(full_url):
         #     platform.python_version()
         # )
     })
+    request.encoding = 'utf-8'
     return request.status_code, request.text, request.headers
 
 
