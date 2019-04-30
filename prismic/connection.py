@@ -24,15 +24,17 @@ from .exceptions import (InvalidTokenError, AuthorizationNeededError,
 from .cache import ShelveCache
 from . import __version__ as prismic_version
 
+
 def get_using_requests(full_url):
     request = requests.get(full_url, headers={
         "Accept": "application/json",
-        "User-Agent": "Prismic-python-kit/%s Python/%s" % (
-            prismic_version,
-            platform.python_version()
-        )
+        # "User-Agent": "Prismic-python-kit/%s Python/%s" % (
+        #     prismic_version,
+        #     platform.python_version()
+        # )
     })
     return request.status_code, request.text, request.headers
+
 
 def get_json(url, params=None, access_token=None, cache=None, ttl=None, request_handler=None):
     full_params = dict() if params is None else params.copy()

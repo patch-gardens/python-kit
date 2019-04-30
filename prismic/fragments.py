@@ -5,11 +5,21 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 
 from collections import namedtuple, defaultdict, OrderedDict
 import logging
-import cgi
 import re
 import datetime
 
 log = logging.getLogger(__name__)
+
+html_escape_table = {
+    "&": "&amp;",
+    ">": "&gt;",
+    "<": "&lt;",
+}
+
+
+def html_escape(text):
+    """Produce entities within text."""
+    return "".join(html_escape_table.get(c,c) for c in text)
 
 
 class FragmentElement(object):
@@ -176,10 +186,9 @@ class Fragment(object):
         def as_html(self, link_resolver):
             html = []
             for key, fragment in list(self.fragments.items()):
-                html.append("""<section data-field="%s">""" % key)
+                html.append(f'<section data-field="{key}">')
                 html.append(self.fragment_to_html(fragment, link_resolver))
-                html.append("""</section>""")
-
+                html.append('</section>')
             return ''.join(html)
 
         def __getitem__(self, name):
@@ -352,20 +361,13 @@ class Fragment(object):
                 self.label = data.get("label")
 
             def as_html(self, link_resolver):
-                img_tag = """<img src="%(url)s" alt="%(alt)s" width="%(width)s" height="%(height)s" />""" % {
-                    'url': self.url,
-                    'width': self.width,
-                    'height': self.height,
-                    'alt': self.alt if (self.alt is not None) else ""
-                }
+                alt = self.alt if (self.alt is not None) else ""
+                img_tag = f'<img src="{self.url}" alt="{alt}" width="{self.width}" height="{self.height}" />'
                 if self.link_to is None:
                     return img_tag
                 else:
                     url = self.link_to.get_url(link_resolver)
-                    return """<a href="%(url)s">%(content)s</a>""" % {
-                        'url': url,
-                        'content': img_tag
-                    }
+                    return f'<a href="{url}">{img_tag}</a>'
 
             @property
             def ratio(self):
@@ -391,10 +393,7 @@ class Fragment(object):
             if self.link_to is None:
                 return view_html
             else:
-                return """<a href="%(url)s">%(content)s</a>""" % {
-                    'url': self.link_to.get_url(link_resolver),
-                    'content': view_html
-                }
+                return f'<a href="{self.link_to.get_url(link_resolver)}">{view_html}</a>'
 
     class Embed(FragmentElement):
         def __init__(self, value):
@@ -437,25 +436,25 @@ class Fragment(object):
 
         @property
         def as_html(self):
-            return """<span class="number">%g</span>""" % self.value
+            return f'<span class="number">{self.value}</span>'
 
     class Range(BasicFragment):
 
         @property
         def as_html(self):
-            return """<span class="range">%s</span>""" % self.value
+            return f'<span class="range">{self.value}</span>'
 
     class Color(BasicFragment):
 
         @property
         def as_html(self):
-            return """<span class="color">%s</span>""" % self.value
+            return f'<span class="color">{self.value}</span>'
 
     class Text(BasicFragment):
 
         @property
         def as_html(self):
-            return """<span class="text">%s</span>""" % cgi.escape(self.value)
+            return f'<span class="text">{html_escape(self.value)}</span>'
 
     class Date(BasicFragment):
 
@@ -465,7 +464,7 @@ class Fragment(object):
 
         @property
         def as_html(self):
-            return """<time>%s</time>""" % self.value
+            return f'<time>{self.value}</time>'
 
     class Timestamp(BasicFragment):
 
@@ -475,7 +474,7 @@ class Fragment(object):
 
         @property
         def as_html(self):
-            return """<time>%s</time>""" % self.value
+            return f'<time>{self.value}</time>'
 
     class Group(BasicFragment):
 
@@ -507,11 +506,8 @@ class Fragment(object):
             classes = ['slice']
             if self.slice_label is not None:
                 classes.append(self.slice_label)
-            return '<div data-slicetype="%(slice_type)s" class="%(classes)s">%(body)s</div>' % {
-                "slice_type": self.slice_type,
-                "classes": ' '.join(classes),
-                "body": self.value.as_html(link_resolver)
-            }
+            classes = ' '.join(classes)
+            return f'<div data-slicetype="{self.slice_type}" class="{classes}">{self.value.as_html(link_resolver)}</div>'
 
     class CompositeSlice(FragmentElement):
 
@@ -550,11 +546,8 @@ class Fragment(object):
             if self.repeat:
                 body += self.repeat.as_html(link_resolver)
 
-            return '<div data-slicetype="%(slice_type)s" class="%(classes)s">%(body)s</div>' % {
-                "slice_type": self.slice_type,
-                "classes": ' '.join(classes),
-                "body": body
-            }
+            classes = ' '.join(classes)
+            return f'<div data-slicetype="{self.slice_type}" class="{classes}">{body}</div>'
 
     class SliceZone(FragmentElement):
 
@@ -584,7 +577,7 @@ class Fragment(object):
     class IntegrationFields(BasicFragment):
 
         def as_html(self):
-            return "<span>{0}</span>".format(self.value)
+            return f'<span>{self.value}</span>'
 
 
 class StructuredText(object):
@@ -652,14 +645,14 @@ class StructuredText(object):
         html = []
         for group in groups:
             if group.tag is not None:
-                html.append("<%(tag)s>" % group.__dict__)
+                html.append(f"<{group.tag}>")
             for block in group.blocks:
                 content = ""
                 if isinstance(block, Text):
                     content = StructuredText.span_as_html(block.text, block.spans, link_resolver, html_serializer)
                 html.append(StructuredText.block_as_html(block, content, link_resolver, html_serializer))
             if group.tag is not None:
-                html.append("</%(tag)s>" % group.__dict__)
+                html.append(f"</{group.tag}>")
 
         html_str = ''.join(html)
         log.debug("as_html result: %s" % html_str)
@@ -673,22 +666,19 @@ class StructuredText(object):
                 return custom_html
         cls = ""
         if isinstance(block, Text) and block.label is not None:
-            cls = " class=\"%s\"" % block.label
+            cls = f' class="{block.label}"'
         if isinstance(block, Block.Heading):
-            return "<h%(level)s%(cls)s>%(html)s</h%(level)s>" % {
-                "level": block.level,
-                "cls": cls,
-                "html": content
-            }
+            return f"<h{block.level}{cls}>{content}</h{block.level}>"
         elif isinstance(block, Block.Paragraph):
-            return "<p%s>%s</p>" % (cls, content)
+            return f"<p{cls}>{content}</p>"
         elif isinstance(block, Block.ListItem):
-            return "<li%s>%s</li>" % (cls, content)
+            return f"<li{cls}>{content}</li>"
         elif isinstance(block, Block.Image):
             all_classes = ["block-img"]
             if block.view.label is not None:
                 all_classes.append(block.view.label)
-            return "<p class=\"%s\">%s</p>" % (" ".join(all_classes), block.get_view().as_html(link_resolver))
+            all_classes = " ".join(all_classes)
+            return f'<p class="{all_classes}">{block.get_view().as_html(link_resolver)}</p>'
         elif isinstance(block, Block.Embed):
             return block.get_embed().as_html
 
@@ -699,16 +689,16 @@ class StructuredText(object):
             if custom_html is not None:
                 return custom_html
         if isinstance(span, Span.Em):
-            return "<em>" + content + "</em>"
+            return f"<em>{content}</em>"
         elif isinstance(span, Span.Strong):
-            return "<strong>" + content + "</strong>"
+            return f"<strong>{content}</strong>"
         elif isinstance(span, Span.Hyperlink):
-            return """<a href="%s">""" % span.get_url(link_resolver) + content + "</a>"
+            return f'<a href="{span.get_url(link_resolver)}">{content}</a>'
         else:
             cls = ""
             if span.label is not None:
                 cls = " class=\"%s\"" % span.label
-            return """<span%s>%s</span>""" % (cls, content)
+            return f'<span{cls}>{content}</span>'
 
     @staticmethod
     def span_as_html(text, spans, link_resolver, html_serializer):
@@ -745,10 +735,10 @@ class StructuredText(object):
                     })
             if len(stack) == 0:
                 # Top-level text
-                html.append(cgi.escape(letter))
+                html.append(letter)
             else:
                 # Inner text of a span
-                stack[-1]["content"] += cgi.escape(letter)
+                stack[-1]["content"] += letter
 
         # Check for the tags after the end of the string
         while len(stack) > 0:
@@ -809,7 +799,7 @@ class Span(object):
 class Text(object):
     """Base class for blocks"""
     def __init__(self, value):
-        self.text = value.get("text")
+        self.text = html_escape(value.get("text"))
         self.spans = [Span.from_json(span) for span in value.get("spans")]
         self.label = value.get("label")
 

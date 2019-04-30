@@ -8,8 +8,10 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 from prismic.cache import ShelveCache
 from prismic.exceptions import InvalidTokenError, AuthorizationNeededError, InvalidURLError
 from .test_prismic_fixtures import fixture_api, fixture_search, fixture_groups, \
-    fixture_structured_lists, fixture_empty_paragraph, fixture_store_geopoint, fixture_image_links, \
-    fixture_spans_labels, fixture_block_labels, fixture_custom_html, fixture_slices, fixture_composite_slices
+    fixture_structured_lists, fixture_empty_paragraph, fixture_store_geopoint, \
+    fixture_image_links, \
+    fixture_spans_labels, fixture_block_labels, fixture_custom_html, fixture_slices, \
+    fixture_composite_slices, fixture_block_price
 import time
 import json
 import logging
@@ -31,6 +33,7 @@ class PrismicTestCase(unittest.TestCase):
         self.fixture_structured_lists = json.loads(fixture_structured_lists)
         self.fixture_empty_paragraph = json.loads(fixture_empty_paragraph)
         self.fixture_block_labels = json.loads(fixture_block_labels)
+        self.fixture_block_price = json.loads(fixture_block_price)
         self.fixture_store_geopoint = json.loads(fixture_store_geopoint)
         self.fixture_groups = json.loads(fixture_groups)
         self.fixture_image_links = json.loads(fixture_image_links)
@@ -328,9 +331,10 @@ class TestFragmentsTestCase(PrismicTestCase):
         doc_json = self.fixture_spans_labels
         p = prismic.fragments.StructuredText(doc_json.get("value"))
         p_html = p.as_html(lambda x: "/x")
-        self.assertEqual(p_html, ("""<p>Two <strong><em>spans</em> with</strong> the same start</p>"""
-                                  """<p>Two <em><strong>spans</strong> with</em> the same start</p>"""
-                                  """<p>Span till the <span class="tip">end</span></p>"""))
+        expected = ("""<p>Two <strong><em>spans</em> with</strong> the same start</p>"""
+                    """<p>Two <em><strong>spans</strong> with</em> the same start</p>"""
+                    """<p>Span till the <span class="tip">end</span></p>""")
+        self.assertEqual(p_html, expected)
 
     def test_lists(self):
         doc_json = self.fixture_structured_lists[0]
@@ -341,6 +345,7 @@ class TestFragmentsTestCase(PrismicTestCase):
                     """<p>Unordered list:</p>"""
                     """<ul><li>Element1</li><li>Element2</li><li>Element3</li></ul>"""
                     """<p>Ordered list:</p><ol><li>Element1</li><li>Element2</li><li>Element3</li></ol>""")
+
         self.assertEqual(doc_html, expected)
 
     def test_empty_paragraph(self):
@@ -357,6 +362,14 @@ class TestFragmentsTestCase(PrismicTestCase):
 
         doc_html = doc.get_field('announcement.content').as_html(PrismicTestCase.link_resolver)
         expected = """<p class="code">some code</p>"""
+        self.assertEqual(doc_html, expected)
+
+    def test_block_with_pricing(self):
+        doc_json = self.fixture_block_price
+        doc = prismic.Document(doc_json)
+
+        doc_html = doc.get_field('announcement.content').as_html(PrismicTestCase.link_resolver)
+        expected = """<p class="code">some price £30 €50 </p>"""
         self.assertEqual(doc_html, expected)
 
     def test_get_text(self):
@@ -404,11 +417,13 @@ class TestFragmentsTestCase(PrismicTestCase):
     def test_group(self):
         contributor = prismic.Document(self.fixture_groups)
         links = contributor.get_group("contributor.links")
-        self.assertEquals(len(links.value), 2)
+        self.assertEqual(len(links.value), 2)
 
     def test_slicezone(self):
         self.maxDiff = 10000
-        doc = prismic.Document(self.fixture_slices)
+        doc_json = self.fixture_slices
+        doc = prismic.Document(doc_json)
+
         slices = doc.get_slice_zone("article.blocks")
         slices_html = slices.as_html(PrismicTestCase.link_resolver)
         expected_html = (
@@ -416,6 +431,7 @@ class TestFragmentsTestCase(PrismicTestCase):
             """<section data-field="title"><span class="text">c'est un bloc features</span></section></div>\n"""
             """<div data-slicetype="text" class="slice"><p>C'est un bloc content</p></div>""")
         # Comparing len rather than actual strings because json loading is not in a deterministic order for now
+
         self.assertEqual(len(expected_html), len(slices_html))
 
     def test_composite_slices(self):
