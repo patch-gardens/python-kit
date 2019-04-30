@@ -647,6 +647,42 @@ fixture_structured_lists = """[
     }
 ]"""
 
+fixture_single_structured_lists = """[
+    {
+        "id": "UinbYMuvzesP4mix",
+        "type": "article",
+        "href": "http://micro-uinbymuvzesp4mie.prismic.io/api/documents/search?ref=UjnQi8uvzXIAAYEM&q=%5B%5B%3Ad+%3D+at%28document.id%2C+%22UinbYMuvzesP4mix%22%29+%5D%5D",
+        "tags": [],
+        "slugs": [
+            "about-us"
+        ],
+        "data": {
+            "article": {
+                "content": {
+                    "type": "StructuredText",
+                    "value": [
+                        {
+                            "type": "list-item",
+                            "text": "Element1",
+                            "spans": []
+                        },
+                        {
+                            "type": "list-item",
+                            "text": "Element2",
+                            "spans": []
+                        },
+                        {
+                            "type": "list-item",
+                            "text": "Element3",
+                            "spans": []
+                        }
+                    ]
+                }
+            }
+        }
+    }
+]"""
+
 fixture_empty_paragraph = """{
    "tags":[],
    "data":{
