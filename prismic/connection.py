@@ -33,10 +33,11 @@ def get_using_requests(full_url):
         #     platform.python_version()
         # )
     })
+    request.encoding = 'utf-8'
     return request.status_code, request.text, request.headers
 
 
-def get_json(url, params=None, access_token=None, cache=None, ttl=None, request_handler=None):
+def get_json(url, params=None, access_token=None, cache=None, ttl=None, request_handler=None, lang=None):
     full_params = dict() if params is None else params.copy()
     if cache is None:
         cache = ShelveCache(re.sub(r'/\\', '', url.split('/')[2]))
@@ -44,6 +45,8 @@ def get_json(url, params=None, access_token=None, cache=None, ttl=None, request_
         request_handler = get_using_requests
     if access_token is not None:
         full_params["access_token"] = access_token
+    if lang is not None:
+        full_params["lang"] = lang
     full_url = url if len(full_params) == 0 else (url + "?" + urlparse.urlencode(full_params, doseq=1))
     cached = cache.get(full_url)
     if cached is not None:
